@@ -16,6 +16,8 @@
  * tagging convention is incompatible with the CVS tagging convention.
  */
 
+require_once DRUPAL_ROOT .'/sites/all/libraries/glip/lib/glip.php';
+
 /**
  * Implement hook_system_info_alter() to provide metadata to drupal
  *   from git.
