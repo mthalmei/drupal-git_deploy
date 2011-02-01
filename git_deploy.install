@@ -1,9 +1,23 @@
 <?php
 // $Id$
 
+/**
+ * Helper function to figure out the Glip path.
+ *
+ * @see _git_deploy_include_glip()
+ */
+function _git_deploy_get_glip_path() {
+  if (module_exists('libraries')) {
+    return libraries_get_path('glip');
+  }
+  else {
+    return DRUPAL_ROOT . '/sites/all/libraries/glip';
+  }
+}
+
 function git_deploy_requirements($phase) {
   $requirements = array();
-  $file_exists = file_exists(DRUPAL_ROOT .'/sites/all/libraries/glip/lib/glip.php');
+  $file_exists = file_exists(_git_deploy_get_glip_path() . '/lib/glip.php');
   if (!$file_exists) {
     $requirements['Glip'] = array(
       'title' => t('Glip Library'),
