@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * Helper function to figure out the Glip path.
