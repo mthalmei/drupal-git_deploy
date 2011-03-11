@@ -39,8 +39,8 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
     return;
   }
 
-  // Skip this item if it has no .git directory
-  if (!file_exists($git_dir)) {
+  // Skip this item if it has no .git directory or no Glip library installed.
+  if (!file_exists($git_dir) || !_git_deploy_include_glip()) {
     return;
   }
 
@@ -195,14 +195,24 @@ function git_deploy_get_project_name($git_dir) {
  * Helper function to include the Glip library.
  *
  * Uses the Libraries module for discovery if it's enabled, falls back to
- * looking in DRUPAL_ROOT/sites/all if it isn't.
+ * looking in git_deploy if it isn't.
+ *
+ * @return boolean $glip
+ *   The path to the already included library file, or FALSE if not found.
  */
 function _git_deploy_include_glip() {
   if (module_exists('libraries')) {
     $glip_path = libraries_get_path('glip');
   }
   else {
-    $glip_path = DRUPAL_ROOT . '/sites/all/libraries/glip';
+    $glip_path = drupal_get_path('module', 'git_deploy') . '/glip';
   }
-  require_once $glip_path . '/lib/glip.php';
+  $glip = $glip_path . '/lib/glip.php';
+  if (file_exists($glip)) {
+    require_once $glip;
+    return $glip;
+  }
+  else {
+    return FALSE;
+  }
 }
