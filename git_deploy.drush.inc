@@ -41,9 +41,6 @@ function drush_git_deploy_download() {
     $path = drush_get_context('DRUSH_DRUPAL_ROOT');
     if (module_exists('libraries')) {
       $path .= '/'. libraries_get_path('glip');
-      // If we have the libraries module go ahead and make the path.
-      drush_mkdir($path);
-      $path .= '/glip';
     }
     else {
       $path .= '/'. drupal_get_path('module', 'git_deploy') . '/glip';
