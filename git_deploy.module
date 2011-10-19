@@ -25,28 +25,24 @@
  * @param $file
  *   An object describing the filesystem location of the module/theme.
  * @param $type
- *   Ignored. We work on both themes and modules.
+ *   Can be module or theme.
  */
 function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
-  if (empty($info['version']) && function_exists('exec')) {
+  if (empty($info['version'])) {
     $config = conf_path();
     $profile = drupal_get_profile();
-    $stopdirs[] = "profiles/$profile/modules";
-    $stopdirs[] = 'sites/all/modules';
-    $stopdirs[] = "$config/modules";
+    $stopdirs["profiles/$profile/$type"] = TRUE;
+    $stopdirs["sites/all/$type"] = TRUE;
+    $stopdirs["$config/$type"] = TRUE;
     $directory = dirname($file->uri);
-    $found = FALSE;
-    foreach ($stopdirs as $stopdir) {
-      if (substr($directory, 0, strlen($stopdir)) == $stopdir) {
-        $found = TRUE;
-        break;
-      }
-    }
-    if ($found) {
-      while ($directory && $directory != $stopdir && !is_dir("$directory/.git")) {
+    // Check whether this belongs to core.
+    if (substr($directory, 0, strlen($type)) != $type) {
+      // Theoretically $directory can never be empty but it's better to make
+      // sure we are falling into an infite loop.
+      while ($directory && !isset($stopdirs[$directory]) && !is_dir("$directory/.git")) {
         $directory = substr($directory, 0,  strrpos($directory, '/'));
       }
-      if ($directory != $stopdir) {
+      if (is_dir("$directory/.git")) {
         $git_dir = "$directory/.git";
         // No need to initalize this variable because it is taken by reference.
         exec("git  --git-dir $git_dir rev-list --topo-order --max-count=1 HEAD", $last_tag_hash);
