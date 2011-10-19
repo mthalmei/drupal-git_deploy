@@ -7,11 +7,9 @@
  */
 
 /**
- * Implement hook_system_info_alter() to provide metadata to drupal
- *   from git.
+ * Implement hook_system_info_alter() to provide metadata to drupal from git.
  *
- * We support populating $info['version'] and $info['project'], as
- * cvs_deploy does.
+ * We support populating $info['version'] and $info['project'].
  *
  * @param $info
  *   The module/theme info array we're altering.
@@ -31,6 +29,7 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
       $git_dir = "$directory/.git";
       // Theoretically /.git could exist.
       if ($directory && is_dir($git_dir)) {
+        $info['project'] = git_deploy_get_project_name($git_dir);
         // No need to initalize this variable because it is taken by reference.
         exec("git  --git-dir $git_dir rev-list --topo-order --max-count=1 HEAD", $last_tag_hash);
         if ($last_tag_hash) {
@@ -44,5 +43,20 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
         }
       }
     }
+  }
+}
+
+/**
+ * Helper function to get the project associated with a Git directory.
+ *
+ * @param  $git_dir
+ *   The location if the .git directory.
+ * @return
+ *   The name of the project.
+ */
+function git_deploy_get_project_name($git_dir) {
+  $git_config = file_get_contents($git_dir . '/config');
+  if (preg_match(';^\s*url\s*=\s*.*?([^/.]+?)(\.git)?\s*$;m', $git_config, $matches)) {
+    return $matches[1];
   }
 }
