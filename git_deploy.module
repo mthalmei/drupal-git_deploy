@@ -3,14 +3,7 @@
 /**
  * @file
  *
- * This module provides metadata about modules installed via git for
- * Drupal's updates listing. As it is intended to provide the same
- * functionality as cvs_deploy but for git modules, this module is modeled
- * after cvs_deploy which is written by Derek Wright ("dww")
- * http://drupal.org/user/46549.
- *
- * The intention of this module is to add versioning information to projects
- * checked out of git.
+ * This module add versioning information to projects checked out of git.
  */
 
 /**
