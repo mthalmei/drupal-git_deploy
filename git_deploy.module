@@ -50,6 +50,16 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
             }
           }
         }
+        // Last attempt: branch.
+        if (empty($info['version'])) {
+          exec("$git rev-parse --abbrev-ref HEAD", $branch);
+          if ($branch) {
+            $branch = $branch[0];
+            if (preg_match('/^' . preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.x$/', $branch)) {
+              $info['version'] = $branch . '-dev';
+            }
+          }
+        }
       }
     }
   }
