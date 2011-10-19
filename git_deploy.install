@@ -2,9 +2,7 @@
 
 function git_deploy_requirements($phase) {
   $requirements = array();
-
   if ($phase == 'runtime') {
-    $output = array();
     $requirements['git'] = array(
       'title' => t('git binary'),
       'value' => t('The git binary is present and executable'),
