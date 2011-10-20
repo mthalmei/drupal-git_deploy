@@ -48,14 +48,13 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
             $last_tag = $last_tag[0];
             if (preg_match('/^(' . preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.\d+(?:-[^-]+)?)(-(\d+-)g[0-9a-f]{7})?$/', $last_tag, $matches)) {
               $info['version'] = isset($matches[2]) ? $matches[1] . '.' . $matches[3] . 'dev' : $last_tag;
-              exec("$git log -1 --pretty=format:%at $last_tag", $datestamp);
-              $info['datestamp'] = $datestamp[0];
             }
           }
         }
         // Last attempt: branch.
         if (empty($info['version'])) {
           exec("$git rev-parse --abbrev-ref HEAD 2>&1", $branch);
+          $last_tag = '';
           if ($branch) {
             $branch = $branch[0];
             if (preg_match('/^' . preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.x$/', $branch)) {
@@ -63,6 +62,11 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
             }
           }
         }
+        // The git log -1 command always succeeds and if we are not on a
+        // tag this will happen to return the time of the last commit which
+        // is exactly what we wanted.
+        exec("$git log -1 --pretty=format:%at $last_tag 2>&1", $datestamp);
+        $info['datestamp'] = $datestamp[0];
       }
     }
   }
