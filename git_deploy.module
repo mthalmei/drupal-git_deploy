@@ -48,7 +48,7 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
         if ($branch) {
           $branch = $branch[0];
           // Any Drupal-formatted branch.
-          $branch_preg =  preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.';
+          $branch_preg =  '\d+\.x-\d+\.';
           if (preg_match('/^' . $branch_preg . 'x$/', $branch)) {
             $info['version'] = $branch . '-dev';
             // Nail down the major version if we are on one.
