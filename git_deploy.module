@@ -30,6 +30,7 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
       // Theoretically /.git could exist.
       if ($directory && is_dir($git_dir)) {
         $git = "git --git-dir $git_dir";
+        // Find first the project name based on fetch URL.
         // Eat error messages. >& is valid on Windows, too. Also, $output does
         // not need initialization because it's taken by reference.
         exec("$git remote show -n origin 2>&1", $output);
@@ -41,26 +42,36 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
           }
           $info['project'] = $project_name;
         }
-        exec("$git rev-list --topo-order --max-count=1 HEAD 2>&1", $last_tag_hash);
-        if ($last_tag_hash) {
-          exec("$git describe  --tags $last_tag_hash[0] 2>&1", $last_tag);
-          if ($last_tag) {
-            $last_tag = $last_tag[0];
-            if (preg_match('/^(' . preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.\d+(?:-[^-]+)?)(-(\d+-)g[0-9a-f]{7})?$/', $last_tag, $matches)) {
-              $info['version'] = isset($matches[2]) ? $matches[1] . '.' . $matches[3] . 'dev' : $last_tag;
+        // Try to fill in branch and tag.
+        exec("$git rev-parse --abbrev-ref HEAD 2>&1", $branch);
+        $tag_found = FALSE;
+        if ($branch) {
+          $branch = $branch[0];
+          // Any Drupal-formatted branch.
+          $branch_preg =  preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.';
+          if (preg_match('/^' . $branch_preg . 'x$/', $branch)) {
+            $info['version'] = $branch . '-dev';
+            // Nail down the major version if we are on one.
+            $branch_preg = substr($branch, -1);
+          }
+          // Now try to find a tag.
+          exec("$git rev-list --topo-order --max-count=1 HEAD 2>&1", $last_tag_hash);
+          if ($last_tag_hash) {
+            exec("$git describe  --tags $last_tag_hash[0] 2>&1", $last_tag);
+            if ($last_tag) {
+              $last_tag = $last_tag[0];
+              // Make sure the tag is Drupal formatted (for eg.
+              // 7.x-1.0-alpha1) and if we are on a proper branch (ie. not
+              // master) then it's on that branch.
+              if (preg_match('/^(' . $branch_preg . '\d+(?:-[^-]+)?)(-(\d+-)g[0-9a-f]{7})?$/', $last_tag, $matches)) {
+                $tag_found = TRUE;
+                $info['version'] = isset($matches[2]) ? $matches[1] . '.' . $matches[3] . 'dev' : $last_tag;
+              }
             }
           }
         }
-        // Last attempt: branch.
-        if (empty($info['version'])) {
-          exec("$git rev-parse --abbrev-ref HEAD 2>&1", $branch);
+        if (!$tag_found) {
           $last_tag = '';
-          if ($branch) {
-            $branch = $branch[0];
-            if (preg_match('/^' . preg_quote(DRUPAL_CORE_COMPATIBILITY) . '-\d+\.x$/', $branch)) {
-              $info['version'] = $branch . '-dev';
-            }
-          }
         }
         // The git log -1 command always succeeds and if we are not on a
         // tag this will happen to return the time of the last commit which
