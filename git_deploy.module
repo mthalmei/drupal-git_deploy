@@ -30,6 +30,15 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
       // Theoretically /.git could exist.
       if ($directory && file_exists($git_dir)) {
         $git = "git --git-dir $git_dir";
+        // Get cached values and return ASAP.
+        exec("$git rev-parse --verify HEAD 2>&1", $head_hash);
+        $head_hash = $head_hash[0];
+        if ($cache = cache_get("git_deploy:$directory:$head_hash")) {
+          foreach (array('datestamp', 'project', 'version') as $key) {
+            $info[$key] = isset($cache->data[$key]) ? $cache->data[$key] : NULL;
+          }
+          return;
+        }
         // Find first the project name based on fetch URL.
         // Eat error messages. >& is valid on Windows, too. Also, $output does
         // not need initialization because it's taken by reference.
@@ -81,6 +90,11 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
         if ($datestamp && is_numeric($datestamp[0])) {
           $info['datestamp'] = $datestamp[0];
         }
+        // Save values into cache.
+        foreach (array('datestamp', 'project', 'version') as $key) {
+          $cache[$key] = isset($info[$key]) ? $info[$key] : NULL;
+        }
+        cache_set("git_deploy:$directory:$head_hash", $cache);
       }
     }
   }
