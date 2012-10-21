@@ -85,7 +85,8 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
         }
         // The git log -1 command always succeeds and if we are not on a
         // tag this will happen to return the time of the last commit which
-        // is exactly what we wanted.
+        // is exactly what we wanted. Do not use escapeshellarg() for
+        // --pretty, since that would strip the % on Windows.
         exec("$git log -1 --pretty=format:%at " . escapeshellarg($last_tag) . " 2>&1", $datestamp);
         if ($datestamp && is_numeric($datestamp[0])) {
           $info['datestamp'] = $datestamp[0];
