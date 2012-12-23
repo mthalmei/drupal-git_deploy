@@ -29,7 +29,7 @@ function git_deploy_system_info_alter(&$info, $file, $type = NULL) {
       $git_dir = "$directory/.git";
       // Theoretically /.git could exist.
       if ($directory && file_exists($git_dir)) {
-        $git = "git --git-dir " . escapeshellarg($git_dir);
+        $git = "LANG=C git --git-dir " . escapeshellarg($git_dir);
         // Get cached values and return ASAP.
         exec("$git rev-parse --verify HEAD 2>&1", $head_hash);
         $head_hash = $head_hash[0];
